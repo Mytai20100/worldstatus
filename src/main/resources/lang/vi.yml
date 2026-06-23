@@ -1,0 +1,38 @@
+# WorldStatus - lang/vi.yml (Tieng Viet)
+# De su dung: dat   language: vi   trong config.yml
+
+messages:
+  no-permission: "&cBan khong co quyen su dung lenh nay."
+  reloaded:      "&aWorldStatus da tai lai cau hinh thanh cong."
+
+world-status:
+  header: "&8&m----------------------------------------&r\n&b&l WorldStatus &8| &7Thong Ke Server\n&8&m----------------------------------------&r"
+  footer: "&8&m----------------------------------------&r"
+
+  disk: "  &7O cung   &r{color}{pct}  &8(&7{used} &8/ &7{total}&8)"
+
+  worlds-total: "  &7The gioi  &a{size} &8(tong cong)"
+
+  world-entry: "    &8> &7{icon} {name}  &f{size}"
+
+  env-overworld: "The Gioi Chinh"
+  env-nether:    "Nether"
+  env-end:       "The End"
+
+  tps: "  &7TPS      &r{color}{tps1}  &8(&75p: {tps5}  15p: {tps15}&8)"
+  mspt: "  &7MSPT     &r{color}{mspt}"
+  ram: "  &7RAM      &r{color}{pct}  &8(&7{used} &8/ &7{max}&8)"
+  cpu: "  &7CPU      &r{color}{pct}"
+  players: "  &7Nguoi choi  &f{online} &8/ &f{max}"
+
+worldbar:
+  usage: "&cCu phap: &e/worldbar <ram|cpu|disk|mspt|tps>"
+
+  label:
+    ram:  "&7RAM  "
+    cpu:  "&7CPU  "
+    disk: "&7O dia"
+    mspt: "&7MSPT "
+    tps:  "&7TPS  "
+
+  line: "{label} {bar}  {extra}"

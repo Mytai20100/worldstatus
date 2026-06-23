@@ -1,0 +1,52 @@
+# WorldStatus - lang/en.yml
+# Color codes: use & prefix (converted to section sign internally)
+# Placeholders: {key}
+
+messages:
+  no-permission: "&cYou do not have permission to use this command."
+  reloaded:      "&aWorldStatus configuration reloaded."
+
+world-status:
+  header: "&8&m----------------------------------------&r\n&b&l WorldStatus &8| &7Server Statistics\n&8&m----------------------------------------&r"
+  footer: "&8&m----------------------------------------&r"
+
+  # {color} {pct} {used} {total}
+  disk: "  &7Disk     &r{color}{pct}  &8(&7{used} &8/ &7{total}&8)"
+
+  # {size}
+  worlds-total: "  &7Worlds   &a{size} &8(total)"
+
+  # {icon} {name} {size}
+  world-entry: "    &8> &7{icon} {name}  &f{size}"
+
+  env-overworld: "Overworld"
+  env-nether:    "Nether"
+  env-end:       "End"
+
+  # {color} {tps1} {tps5} {tps15}
+  tps: "  &7TPS      &r{color}{tps1}  &8(&75m: {tps5}  15m: {tps15}&8)"
+
+  # {color} {mspt}
+  mspt: "  &7MSPT     &r{color}{mspt}"
+
+  # {color} {pct} {used} {max}
+  ram: "  &7RAM      &r{color}{pct}  &8(&7{used} &8/ &7{max}&8)"
+
+  # {color} {pct}
+  cpu: "  &7CPU      &r{color}{pct}"
+
+  # {online} {max}
+  players: "  &7Players  &f{online} &8/ &f{max}"
+
+worldbar:
+  usage: "&cUsage: &e/worldbar [ram|cpu|disk|mspt|tps]"
+
+  label:
+    ram:  "&7RAM  "
+    cpu:  "&7CPU  "
+    disk: "&7Disk "
+    mspt: "&7MSPT "
+    tps:  "&7TPS  "
+
+  # {label} {bar} {extra}
+  line: "{label} {bar}  {extra}"

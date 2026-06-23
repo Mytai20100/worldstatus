@@ -1,0 +1,95 @@
+{
+  "enabled": true,
+  "background": {
+    "type": "image",
+    "path": "playerlist_background.png",
+    "color": "#1E2028"
+  },
+  "logo": {
+    "enabled": true,
+    "path": "server_logo.png",
+    "x": 50,
+    "y": 30,
+    "width": 100,
+    "height": 100
+  },
+  "title": {
+    "text": "Player List",
+    "font": "Arial",
+    "size": 32,
+    "color": "#E4E6F0",
+    "bold": true,
+    "x": 170,
+    "y": 60,
+    "blur": 0
+  },
+  "subtitle": {
+    "text": "{online}/{max} players online",
+    "font": "Arial",
+    "size": 18,
+    "color": "#A0A0A0",
+    "bold": false,
+    "x": 170,
+    "y": 95,
+    "blur": 0
+  },
+  "playerList": {
+    "startX": 50,
+    "startY": 150,
+    "rowHeight": 35,
+    "columns": [
+      {
+        "type": "text",
+        "header": "Player",
+        "value": "{player_name}",
+        "font": "Arial",
+        "size": 16,
+        "color": "#E4E6F0",
+        "bold": false,
+        "x": 0,
+        "blur": 0
+      },
+      {
+        "type": "text",
+        "header": "Ping",
+        "value": "{ping}ms",
+        "font": "Arial",
+        "size": 16,
+        "color": "#5B8DFF",
+        "bold": false,
+        "x": 250,
+        "blur": 0
+      },
+      {
+        "type": "text",
+        "header": "World",
+        "value": "{world}",
+        "font": "Arial",
+        "size": 16,
+        "color": "#4CAF50",
+        "bold": false,
+        "x": 400,
+        "blur": 0
+      }
+    ],
+    "headerColor": "#A0A0A0",
+    "alternateRowColor": "#252735",
+    "rowColor": "#1E2028"
+  },
+  "footer": {
+    "text": "Updated: {timestamp}",
+    "font": "Arial",
+    "size": 14,
+    "color": "#808080",
+    "bold": false,
+    "x": 50,
+    "y": -30,
+    "blur": 0
+  },
+  "canvas": {
+    "width": 680,
+    "dynamicHeight": true,
+    "minHeight": 400,
+    "padding": 20
+  }
+}

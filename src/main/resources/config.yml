@@ -1,0 +1,66 @@
+# WorldStatus - config.yml
+# Paper / Purpur / Folia 1.21+
+
+# Language file to load from plugins/WorldStatus/lang/
+# Built-in: en, vi
+language: en
+
+discord:
+  enabled: false
+  token: "YOUR_BOT_TOKEN_HERE"
+  # Server (guild) ID for instant slash command registration.
+  # Leave blank to register globally (takes up to 1 hour).
+  guild-id: ""
+  # Seconds between auto-refresh of /playerlist embed. 0 = disabled.
+  playerlist-refresh-seconds: 5
+  # Rendering mode for playerlist: "text" or "canva"
+  playerlist-render-mode: "text"
+  # World status mode: "canva" (image only) or "embed" (embed with image)
+  world-status-mode: "embed"
+
+world-status:
+  show-disk-percent: true
+  show-world-sizes: true
+  show-tps: true
+  show-mspt: true
+  show-ram: true
+  show-cpu: true
+  show-players: true
+
+worldbar:
+  char-filled: "\u2588"
+  char-empty: "\u2591"
+  length: 20
+  color: true
+  # Seconds the boss bar stays visible in-game (player only)
+  display-seconds: 0   # 0 = hiển thị vĩnh viễn cho đến khi player tắt thủ công
+
+prometheus:
+  enabled: false
+  bind-ip: "0.0.0.0"
+  port: 4233
+  metrics:
+    tps: true
+    mspt: true
+    players: true
+    ram: true
+    cpu: true
+    disk: true
+    network: true
+    packets: true
+    ping: true
+    chunks: true
+    entities: true
+    mobs: true
+    player_events: true
+    player_session: true
+    player_ping: true
+    deaths: true
+    classes: true
+    heap: true
+    gc: true
+    io: true
+    chunk_operations: true
+    tick: true
+    plugins: true
+    world_size: true
