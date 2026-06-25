@@ -1,7 +1,7 @@
 package org.worldstatus.util;
 
 import com.sun.management.OperatingSystemMXBean;
-import org.worldstatus.WorldStatusPlugin;
+import org.worldstatus.WorldStatus;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.scheduler.BukkitTask;
@@ -14,14 +14,14 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class SystemStats {
+public class System {
 
     private static final int TICK_SAMPLE_CURRENT = 100;
     private static final int TICK_SAMPLE_5M = 6000;
     private static final int TICK_SAMPLE_15M = 18000;
     private static final int TICK_SAMPLE_30M = 36000;
 
-    private final WorldStatusPlugin plugin;
+    private final WorldStatus plugin;
     private final OperatingSystemMXBean osBean;
 
     private final Deque<Long> tickTimesCurrent = new ArrayDeque<>(TICK_SAMPLE_CURRENT + 1);
@@ -33,22 +33,17 @@ public class SystemStats {
     private volatile Object trackingTask;
     private final AtomicBoolean trackingActive = new AtomicBoolean(false);
 
-    public SystemStats(WorldStatusPlugin plugin) {
+    public System(WorldStatus plugin) {
         this.plugin = plugin;
         this.osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
     }
 
-    /**
-     * Starts a 1-tick repeating timer that records inter-tick durations for MSPT calculation.
-     * Safe to call multiple times — subsequent calls are no-ops.
-     */
     public void startTracking() {
         if (!trackingActive.compareAndSet(false, true)) {
-            return; // already running
+            return;
         }
 
-        if (FoliaUtil.isFolia()) {
-            // Folia: GlobalRegionScheduler for server-wide tick timing
+        if (Folia.isFolia()) {
             io.papermc.paper.threadedregions.scheduler.ScheduledTask task =
                     plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, t -> {
                         if (!trackingActive.get()) {
@@ -60,17 +55,13 @@ public class SystemStats {
             trackingTask = task;
         } else {
             BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-                if (!trackingActive.get()) return; // will be cancelled by stopTracking()
+                if (!trackingActive.get()) return;
                 recordTick();
             }, 1L, 1L);
             trackingTask = task;
         }
     }
 
-    /**
-     * Stops the tick-tracking timer and releases resources.
-     * Called from {@code WorldStatusPlugin#onDisable()}.
-     */
     public void stopTracking() {
         if (!trackingActive.compareAndSet(true, false)) {
             return;
@@ -82,40 +73,28 @@ public class SystemStats {
         } else if (task instanceof io.papermc.paper.threadedregions.scheduler.ScheduledTask st) {
             try { st.cancel(); } catch (Exception ignored) {}
         }
-        synchronized (tickTimesCurrent) {
-            tickTimesCurrent.clear();
-        }
-        synchronized (tickTimes5m) {
-            tickTimes5m.clear();
-        }
-        synchronized (tickTimes15m) {
-            tickTimes15m.clear();
-        }
-        synchronized (tickTimes30m) {
-            tickTimes30m.clear();
-        }
+        synchronized (tickTimesCurrent) { tickTimesCurrent.clear(); }
+        synchronized (tickTimes5m) { tickTimes5m.clear(); }
+        synchronized (tickTimes15m) { tickTimes15m.clear(); }
+        synchronized (tickTimes30m) { tickTimes30m.clear(); }
     }
 
     private void recordTick() {
-        long now = System.nanoTime();
+        long now = java.lang.System.nanoTime();
         if (lastTickNano > 0) {
             long duration = now - lastTickNano;
-            
             synchronized (tickTimesCurrent) {
                 if (tickTimesCurrent.size() >= TICK_SAMPLE_CURRENT) tickTimesCurrent.pollFirst();
                 tickTimesCurrent.addLast(duration);
             }
-            
             synchronized (tickTimes5m) {
                 if (tickTimes5m.size() >= TICK_SAMPLE_5M) tickTimes5m.pollFirst();
                 tickTimes5m.addLast(duration);
             }
-            
             synchronized (tickTimes15m) {
                 if (tickTimes15m.size() >= TICK_SAMPLE_15M) tickTimes15m.pollFirst();
                 tickTimes15m.addLast(duration);
             }
-            
             synchronized (tickTimes30m) {
                 if (tickTimes30m.size() >= TICK_SAMPLE_30M) tickTimes30m.pollFirst();
                 tickTimes30m.addLast(duration);
@@ -192,11 +171,6 @@ public class SystemStats {
         return total;
     }
 
-    /**
-     * Recursively sums file sizes under {@code dir}.
-     * NOTE: This is a blocking I/O operation. Only call it from an async context
-     * or it may stall the main thread on large world folders.
-     */
     private long getFolderSize(File dir) {
         if (dir == null || !dir.exists()) return 0;
         long size = 0;
@@ -210,24 +184,16 @@ public class SystemStats {
 
     // ---- TPS ---------------------------------------------------------------
 
-    /**
-     * On Folia, Bukkit.getTPS() always returns 20.0 because TPS is per-region.
-     * Instead we derive TPS from our own MSPT ring buffer:
-     *   TPS = min(1000 / mspt, 20)  where mspt = average ms per tick.
-     * On Bukkit/Paper we still use the native API since it provides 5m/15m averages.
-     */
     public double[] getTPS() {
-        if (FoliaUtil.isFolia()) {
+        if (Folia.isFolia()) {
             double msptCurrent = getMSPT();
             double mspt5m = getMSPT5m();
             double mspt15m = getMSPT15m();
             double mspt30m = getMSPT30m();
-            
             double tpsCurrent = msptCurrent <= 0 ? 20.0 : Math.min(1000.0 / msptCurrent, 20.0);
             double tps5m = mspt5m <= 0 ? 20.0 : Math.min(1000.0 / mspt5m, 20.0);
             double tps15m = mspt15m <= 0 ? 20.0 : Math.min(1000.0 / mspt15m, 20.0);
             double tps30m = mspt30m <= 0 ? 20.0 : Math.min(1000.0 / mspt30m, 20.0);
-            
             return new double[]{tpsCurrent, tps5m, tps15m, tps30m};
         }
         try {

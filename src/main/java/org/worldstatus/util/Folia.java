@@ -1,11 +1,11 @@
 package org.worldstatus.util;
 
-import org.worldstatus.WorldStatusPlugin;
+import org.worldstatus.WorldStatus;
 import org.bukkit.Bukkit;
 
 import java.util.concurrent.TimeUnit;
 
-public final class FoliaUtil {
+public final class Folia {
 
     private static final boolean IS_FOLIA;
 
@@ -18,13 +18,13 @@ public final class FoliaUtil {
         IS_FOLIA = folia;
     }
 
-    private FoliaUtil() {}
+    private Folia() {}
 
     public static boolean isFolia() {
         return IS_FOLIA;
     }
 
-    public static void runAsync(WorldStatusPlugin plugin, Runnable task) {
+    public static void runAsync(WorldStatus plugin, Runnable task) {
         if (IS_FOLIA) {
             plugin.getServer().getAsyncScheduler().runNow(plugin, t -> task.run());
         } else {
@@ -32,7 +32,7 @@ public final class FoliaUtil {
         }
     }
 
-    public static void runAsyncTimer(WorldStatusPlugin plugin, Runnable task, long delayTicks, long periodTicks) {
+    public static void runAsyncTimer(WorldStatus plugin, Runnable task, long delayTicks, long periodTicks) {
         if (IS_FOLIA) {
             long delayMs  = delayTicks  * 50L;
             long periodMs = periodTicks * 50L;
@@ -43,7 +43,7 @@ public final class FoliaUtil {
         }
     }
 
-    public static void runSync(WorldStatusPlugin plugin, Runnable task) {
+    public static void runSync(WorldStatus plugin, Runnable task) {
         if (IS_FOLIA) {
             plugin.getServer().getGlobalRegionScheduler().run(plugin, t -> task.run());
         } else {
@@ -51,7 +51,7 @@ public final class FoliaUtil {
         }
     }
 
-    public static void runSyncTimer(WorldStatusPlugin plugin, Runnable task, long delayTicks, long periodTicks) {
+    public static void runSyncTimer(WorldStatus plugin, Runnable task, long delayTicks, long periodTicks) {
         if (IS_FOLIA) {
             plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(
                     plugin, t -> task.run(), delayTicks, periodTicks);

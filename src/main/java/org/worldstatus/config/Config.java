@@ -1,13 +1,13 @@
 package org.worldstatus.config;
 
-import org.worldstatus.WorldStatusPlugin;
+import org.worldstatus.WorldStatus;
 import org.bukkit.configuration.file.FileConfiguration;
 
-public class ConfigManager {
+public class Config {
 
-    private final WorldStatusPlugin plugin;
+    private final WorldStatus plugin;
 
-    public ConfigManager(WorldStatusPlugin plugin) {
+    public Config(WorldStatus plugin) {
         this.plugin = plugin;
     }
 
@@ -43,10 +43,19 @@ public class ConfigManager {
     public boolean showCPU()          { return cfg().getBoolean("world-status.show-cpu",           true); }
     public boolean showPlayers()      { return cfg().getBoolean("world-status.show-players",       true); }
 
-    public String getBarCharFilled()   { return cfg().getString("worldbar.char-filled", "\u2588"); }
-    public String getBarCharEmpty()    { return cfg().getString("worldbar.char-empty",  "\u2591"); }
-    public int    getBarLength()       { return cfg().getInt("worldbar.length", 20); }
-    public boolean isBarColorEnabled() { return cfg().getBoolean("worldbar.color", true); }
-    /** Seconds before the in-game boss bar is automatically removed. */
-    public int    getBarDisplaySeconds() { return cfg().getInt("worldbar.display-seconds", 0); }
+    public String  getBarCharFilled()   { return cfg().getString("worldbar.char-filled", "█"); }
+    public String  getBarCharEmpty()    { return cfg().getString("worldbar.char-empty",  "░"); }
+    public int     getBarLength()       { return cfg().getInt("worldbar.length", 20); }
+    public boolean isBarColorEnabled()  { return cfg().getBoolean("worldbar.color", true); }
+    public int     getBarDisplaySeconds() { return cfg().getInt("worldbar.display-seconds", 0); }
+
+    // ---- InfluxDB ----------------------------------------------------------
+
+    public boolean isInfluxEnabled()    { return cfg().getBoolean("influxdb.enabled", false); }
+    public String  getInfluxUrl()       { return cfg().getString("influxdb.url", "http://localhost:8086"); }
+    public String  getInfluxToken()     { return cfg().getString("influxdb.token", ""); }
+    public String  getInfluxOrg()       { return cfg().getString("influxdb.org", ""); }
+    public String  getInfluxBucket()    { return cfg().getString("influxdb.bucket", "worldstatus"); }
+    public int     getInfluxInterval()  { return cfg().getInt("influxdb.interval-seconds", 30); }
+    public String  getInfluxMeasurement() { return cfg().getString("influxdb.measurement", "minecraft"); }
 }

@@ -64,3 +64,26 @@ prometheus:
     tick: true
     plugins: true
     world_size: true
+
+influxdb:
+  enabled: false
+  url: "http://localhost:8086"
+  token: "YOUR_INFLUXDB_TOKEN"
+  org: "your-org"
+  bucket: "worldstatus"
+  # Measurement name cho Line Protocol
+  measurement: "minecraft"
+  # Interval đẩy metrics (giây)
+  interval-seconds: 30
+  metrics:
+    tps: true
+    mspt: true
+    players: true
+    ram: true
+    cpu: true
+    disk: true
+    chunks: true
+    entities: true
+    mobs: true
+    world_size: true
+    ping: true

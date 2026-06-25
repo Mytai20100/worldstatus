@@ -2,25 +2,23 @@ package org.worldstatus.prometheus;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.worldstatus.WorldStatusPlugin;
-import org.worldstatus.util.SystemStats;
+import org.worldstatus.WorldStatus;
+import org.worldstatus.util.System;
 
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.util.HashMap;
 import java.util.Map;
 
-public class PrometheusMetrics {
+public class Metrics {
 
-    private final WorldStatusPlugin plugin;
-    private final SystemStats stats;
+    private final WorldStatus plugin;
+    private final System stats;
 
-    public PrometheusMetrics(WorldStatusPlugin plugin) {
+    public Metrics(WorldStatus plugin) {
         this.plugin = plugin;
         this.stats = plugin.getSystemStats();
     }
@@ -39,9 +37,9 @@ public class PrometheusMetrics {
         if (isEnabled("mspt")) {
             double mspt = stats.getMSPT();
             metric(sb, "minecraft_mspt_current", mspt);
-            metric(sb, "minecraft_mspt_5m", mspt);
-            metric(sb, "minecraft_mspt_15m", mspt);
-            metric(sb, "minecraft_mspt_30m", mspt);
+            metric(sb, "minecraft_mspt_5m", stats.getMSPT5m());
+            metric(sb, "minecraft_mspt_15m", stats.getMSPT15m());
+            metric(sb, "minecraft_mspt_30m", stats.getMSPT30m());
         }
 
         if (isEnabled("players")) {
@@ -51,11 +49,10 @@ public class PrometheusMetrics {
 
         if (isEnabled("ram")) {
             long used = stats.getUsedMemoryBytes();
-            long max = stats.getMaxMemoryBytes();
-            long free = max - used;
+            long max  = stats.getMaxMemoryBytes();
             metric(sb, "minecraft_ram_total_bytes", max);
             metric(sb, "minecraft_ram_used_bytes", used);
-            metric(sb, "minecraft_ram_free_bytes", free);
+            metric(sb, "minecraft_ram_free_bytes", max - used);
         }
 
         if (isEnabled("cpu")) {
@@ -64,10 +61,8 @@ public class PrometheusMetrics {
         }
 
         if (isEnabled("disk")) {
-            long total = stats.getDiskTotalBytes();
-            long used = stats.getDiskUsedBytes();
-            metric(sb, "minecraft_disk_total_bytes", total);
-            metric(sb, "minecraft_disk_used_bytes", used);
+            metric(sb, "minecraft_disk_total_bytes", stats.getDiskTotalBytes());
+            metric(sb, "minecraft_disk_used_bytes", stats.getDiskUsedBytes());
         }
 
         if (isEnabled("network")) {
@@ -102,12 +97,11 @@ public class PrometheusMetrics {
                     .mapToInt(w -> w.getEntities().size())
                     .sum();
             metric(sb, "minecraft_entities_total", totalEntities);
-
             for (World world : Bukkit.getWorlds()) {
-                int chunks = world.getLoadedChunks().length;
+                int chunks   = world.getLoadedChunks().length;
                 int entities = world.getEntities().size();
                 if (chunks > 0) {
-                    metric(sb, "minecraft_entities_per_chunk", entities / (double) chunks, 
+                    metric(sb, "minecraft_entities_per_chunk", entities / (double) chunks,
                            Map.of("world", world.getName(), "dimension", world.getEnvironment().name()));
                 }
             }
@@ -128,15 +122,15 @@ public class PrometheusMetrics {
 
         if (isEnabled("player_session")) {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                long sessionTime = (System.currentTimeMillis() - p.getFirstPlayed()) / 1000;
-                metric(sb, "minecraft_player_session_time_seconds", sessionTime, 
+                long sessionTime = (java.lang.System.currentTimeMillis() - p.getFirstPlayed()) / 1000;
+                metric(sb, "minecraft_player_session_time_seconds", sessionTime,
                        Map.of("player", p.getName()));
             }
         }
 
         if (isEnabled("player_ping")) {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                metric(sb, "minecraft_player_ping_ms", p.getPing(), 
+                metric(sb, "minecraft_player_ping_ms", p.getPing(),
                        Map.of("player", p.getName()));
             }
         }
@@ -152,17 +146,14 @@ public class PrometheusMetrics {
 
         if (isEnabled("heap")) {
             MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
-            long heapUsed = memBean.getHeapMemoryUsage().getUsed();
-            long heapMax = memBean.getHeapMemoryUsage().getMax();
-            metric(sb, "minecraft_heap_used_bytes", heapUsed);
-            metric(sb, "minecraft_heap_max_bytes", heapMax);
+            metric(sb, "minecraft_heap_used_bytes", memBean.getHeapMemoryUsage().getUsed());
+            metric(sb, "minecraft_heap_max_bytes", memBean.getHeapMemoryUsage().getMax());
         }
 
         if (isEnabled("gc")) {
-            long gcTime = 0;
-            long gcCount = 0;
+            long gcTime = 0, gcCount = 0;
             for (GarbageCollectorMXBean gc : ManagementFactory.getGarbageCollectorMXBeans()) {
-                gcTime += gc.getCollectionTime();
+                gcTime  += gc.getCollectionTime();
                 gcCount += gc.getCollectionCount();
             }
             metric(sb, "minecraft_gc_time_ms", gcTime);
@@ -192,8 +183,7 @@ public class PrometheusMetrics {
 
         if (isEnabled("world_size")) {
             for (World world : Bukkit.getWorlds()) {
-                long size = stats.getWorldSize(world);
-                metric(sb, "minecraft_world_size_bytes", size, 
+                metric(sb, "minecraft_world_size_bytes", stats.getWorldSize(world),
                        Map.of("world", world.getName()));
             }
         }

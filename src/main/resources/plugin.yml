@@ -1,6 +1,6 @@
 name: WorldStatus
 version: '0.0.1'
-main: org.worldstatus.WorldStatusPlugin
+main: org.worldstatus.WorldStatus
 api-version: '1.21'
 folia-supported: true
 libraries:

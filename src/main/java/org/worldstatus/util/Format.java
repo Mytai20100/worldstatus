@@ -1,10 +1,10 @@
 package org.worldstatus.util;
 
-public final class FormatUtil {
+public final class Format {
 
     private static final String[] SIZE_UNITS = {"B", "KB", "MB", "GB", "TB", "PB"};
 
-    private FormatUtil() {}
+    private Format() {}
 
     public static String formatBytes(long bytes) {
         if (bytes <= 0) return "0 B";
@@ -14,25 +14,25 @@ public final class FormatUtil {
             value /= 1024.0;
             idx++;
         }
-        return idx == 0 ? bytes + " B" : String.format("%.2f %s", value, SIZE_UNITS[idx]);
+        return idx == 0 ? bytes + " B" : java.lang.String.format("%.2f %s", value, SIZE_UNITS[idx]);
     }
 
     public static String percentColor(double percent) {
-        if (percent < 50.0) return "\u00a7a";
-        if (percent < 75.0) return "\u00a7e";
-        return "\u00a7c";
+        if (percent < 50.0) return "§a";
+        if (percent < 75.0) return "§e";
+        return "§c";
     }
 
     public static String tpsColor(double tps) {
-        if (tps >= 18.0) return "\u00a7a";
-        if (tps >= 15.0) return "\u00a7e";
-        return "\u00a7c";
+        if (tps >= 18.0) return "§a";
+        if (tps >= 15.0) return "§e";
+        return "§c";
     }
 
     public static String msptColor(double mspt) {
-        if (mspt <= 35.0) return "\u00a7a";
-        if (mspt <= 49.0) return "\u00a7e";
-        return "\u00a7c";
+        if (mspt <= 35.0) return "§a";
+        if (mspt <= 49.0) return "§e";
+        return "§c";
     }
 
     public static String buildBar(double percent, int length, String filled, String empty, boolean useColor) {
@@ -46,7 +46,7 @@ public final class FormatUtil {
         bar.append(filled.repeat(Math.max(0, filledCount)));
         bar.append(empty.repeat(Math.max(0, emptyCount)));
         bar.append("]");
-        if (useColor) bar.append("\u00a7r");
+        if (useColor) bar.append("§r");
         return bar.toString();
     }
 
@@ -61,11 +61,11 @@ public final class FormatUtil {
         bar.append(filled.repeat(Math.max(0, filledCount)));
         bar.append(empty.repeat(Math.max(0, emptyCount)));
         bar.append("]");
-        if (useColor) bar.append("\u00a7r");
+        if (useColor) bar.append("§r");
         return bar.toString();
     }
 
-    public static String formatPercent(double d)  { return String.format("%.1f", d) + "%"; }
-    public static String formatTPS(double tps)     { return String.format("%.2f", tps); }
-    public static String formatMSPT(double mspt)   { return String.format("%.2f", mspt) + "ms"; }
+    public static String formatPercent(double d)  { return java.lang.String.format("%.1f", d) + "%"; }
+    public static String formatTPS(double tps)     { return java.lang.String.format("%.2f", tps); }
+    public static String formatMSPT(double mspt)   { return java.lang.String.format("%.2f", mspt) + "ms"; }
 }

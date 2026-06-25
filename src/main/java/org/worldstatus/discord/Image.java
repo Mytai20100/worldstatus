@@ -1,8 +1,8 @@
 package org.worldstatus.discord;
 
-import org.worldstatus.WorldStatusPlugin;
-import org.worldstatus.util.FormatUtil;
-import org.worldstatus.util.SystemStats;
+import org.worldstatus.WorldStatus;
+import org.worldstatus.util.Format;
+import org.worldstatus.util.System;
 import org.bukkit.World;
 
 import java.awt.*;
@@ -12,16 +12,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StatusImageBuilder {
+public class Image {
 
-    private static final Color BG        = new Color(0x1E, 0x20, 0x28);
-    private static final Color BG_CARD   = new Color(0x25, 0x27, 0x35);
-    private static final Color ACCENT    = new Color(0x5B, 0x8D, 0xFF);
-    private static final Color TEXT_MAIN = new Color(0xE4, 0xE6, 0xF0);
-    private static final Color TEXT_MUTED= new Color(0x88, 0x8A, 0x9D);
-    private static final Color COL_GREEN = new Color(0x4C, 0xAF, 0x50);
-    private static final Color COL_YELLOW= new Color(0xFF, 0xC1, 0x07);
-    private static final Color COL_RED   = new Color(0xF4, 0x43, 0x36);
+    private static final Color BG         = new Color(0x1E, 0x20, 0x28);
+    private static final Color BG_CARD    = new Color(0x25, 0x27, 0x35);
+    private static final Color ACCENT     = new Color(0x5B, 0x8D, 0xFF);
+    private static final Color TEXT_MAIN  = new Color(0xE4, 0xE6, 0xF0);
+    private static final Color TEXT_MUTED = new Color(0x88, 0x8A, 0x9D);
+    private static final Color COL_GREEN  = new Color(0x4C, 0xAF, 0x50);
+    private static final Color COL_YELLOW = new Color(0xFF, 0xC1, 0x07);
+    private static final Color COL_RED    = new Color(0xF4, 0x43, 0x36);
 
     private static final int WIDTH    = 680;
     private static final int PADDING  = 24;
@@ -41,49 +41,40 @@ public class StatusImageBuilder {
         public record WorldEntry(String name, String environment, long sizeBytes) {}
     }
 
-    private final WorldStatusPlugin plugin;
+    private final WorldStatus plugin;
 
-    public StatusImageBuilder(WorldStatusPlugin plugin) {
+    public Image(WorldStatus plugin) {
         this.plugin = plugin;
     }
 
-    /**
-     * Must be called on the Bukkit main thread to capture a safe snapshot.
-     */
-    public static BukkitSnapshot snapshotOnMainThread(WorldStatusPlugin plugin) {
-        SystemStats sys = plugin.getSystemStats();
+    /** Must be called on the Bukkit main thread to capture a safe snapshot. */
+    public static BukkitSnapshot snapshotOnMainThread(WorldStatus plugin) {
+        System sys = plugin.getSystemStats();
         List<BukkitSnapshot.WorldEntry> worlds = new ArrayList<>();
         for (World w : org.bukkit.Bukkit.getWorlds()) {
             worlds.add(new BukkitSnapshot.WorldEntry(
-                    w.getName(),
-                    w.getEnvironment().name(),
-                    sys.getWorldSize(w)
-            ));
+                    w.getName(), w.getEnvironment().name(), sys.getWorldSize(w)));
         }
-        int online = org.bukkit.Bukkit.getOnlinePlayers().size();
-        int max    = org.bukkit.Bukkit.getMaxPlayers();
-        String serverName = org.bukkit.Bukkit.getServer().getName();
-        
-        int chunksLoaded = org.bukkit.Bukkit.getWorlds().stream()
-                .mapToInt(w -> w.getLoadedChunks().length)
-                .sum();
-        int entitiesTotal = org.bukkit.Bukkit.getWorlds().stream()
-                .mapToInt(w -> w.getEntities().size())
-                .sum();
-        long mobsTotal = org.bukkit.Bukkit.getWorlds().stream()
+        int online     = org.bukkit.Bukkit.getOnlinePlayers().size();
+        int max        = org.bukkit.Bukkit.getMaxPlayers();
+        String srvName = org.bukkit.Bukkit.getServer().getName();
+        int chunks     = org.bukkit.Bukkit.getWorlds().stream()
+                .mapToInt(w -> w.getLoadedChunks().length).sum();
+        int entities   = org.bukkit.Bukkit.getWorlds().stream()
+                .mapToInt(w -> w.getEntities().size()).sum();
+        long mobs      = org.bukkit.Bukkit.getWorlds().stream()
                 .flatMap(w -> w.getEntities().stream())
-                .filter(e -> e.getType() != org.bukkit.entity.EntityType.PLAYER 
-                        && e.getType() != org.bukkit.entity.EntityType.ARMOR_STAND)
+                .filter(e -> e.getType() != org.bukkit.entity.EntityType.PLAYER
+                          && e.getType() != org.bukkit.entity.EntityType.ARMOR_STAND)
                 .count();
-        
-        return new BukkitSnapshot(worlds, online, max, serverName, chunksLoaded, entitiesTotal, mobsTotal);
+        return new BukkitSnapshot(worlds, online, max, srvName, chunks, entities, mobs);
     }
 
     /** Build the status image using a pre-captured main-thread snapshot. */
     public BufferedImage build(BukkitSnapshot snapshot) {
-        SystemStats sys  = plugin.getSystemStats();
-        List<Row>   rows = collectRows(sys, snapshot);
-        int height = HEADER_H + rows.size() * ROW_H + PADDING + FOOTER_H;
+        System        sys    = plugin.getSystemStats();
+        List<Row>     rows   = collectRows(sys, snapshot);
+        int           height = HEADER_H + rows.size() * ROW_H + PADDING + FOOTER_H;
 
         BufferedImage img = new BufferedImage(WIDTH, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D    g   = img.createGraphics();
@@ -107,20 +98,15 @@ public class StatusImageBuilder {
         return img;
     }
 
-    private List<Row> collectRows(SystemStats sys, BukkitSnapshot snapshot) {
+    private List<Row> collectRows(System sys, BukkitSnapshot snapshot) {
         List<Row> rows = new ArrayList<>();
 
         double diskPct = sys.getDiskPercent();
-        rows.add(new Row(
-                "Disk",
-                FormatUtil.formatPercent(diskPct),
-                FormatUtil.formatBytes(sys.getDiskUsedBytes()) + " / " + FormatUtil.formatBytes(sys.getDiskTotalBytes()),
+        rows.add(new Row("Disk", Format.formatPercent(diskPct),
+                Format.formatBytes(sys.getDiskUsedBytes()) + " / " + Format.formatBytes(sys.getDiskTotalBytes()),
                 diskPct, false, true));
 
-        rows.add(new Row(
-                "Worlds (total)",
-                FormatUtil.formatBytes(sys.getAllWorldsSize()),
-                "", 0, false, false));
+        rows.add(new Row("Worlds (total)", Format.formatBytes(sys.getAllWorldsSize()), "", 0, false, false));
 
         for (BukkitSnapshot.WorldEntry w : snapshot.worlds()) {
             String prefix = switch (w.environment()) {
@@ -128,47 +114,29 @@ public class StatusImageBuilder {
                 case "THE_END" -> "  > [End] ";
                 default        -> "  > [Overworld] ";
             };
-            rows.add(new Row(
-                    prefix + w.name(),
-                    FormatUtil.formatBytes(w.sizeBytes()),
-                    "", 0, false, false));
+            rows.add(new Row(prefix + w.name(), Format.formatBytes(w.sizeBytes()), "", 0, false, false));
         }
 
         double[] tps = sys.getTPS();
-        rows.add(new Row(
-                "TPS",
-                FormatUtil.formatTPS(tps[0]),
-                "5m: " + FormatUtil.formatTPS(tps[1]) + "  15m: " + FormatUtil.formatTPS(tps[2]),
+        rows.add(new Row("TPS", Format.formatTPS(tps[0]),
+                "5m: " + Format.formatTPS(tps[1]) + "  15m: " + Format.formatTPS(tps[2]),
                 tps[0] / 20.0 * 100.0, true, true));
 
         double mspt = sys.getMSPT();
-        rows.add(new Row(
-                "MSPT",
-                FormatUtil.formatMSPT(mspt),
-                "/ 50ms budget",
-                sys.getMSPTPercent(), false, true));
+        rows.add(new Row("MSPT", Format.formatMSPT(mspt), "/ 50ms budget", sys.getMSPTPercent(), false, true));
 
         double ramPct = sys.getRAMPercent();
-        rows.add(new Row(
-                "RAM",
-                FormatUtil.formatPercent(ramPct),
-                FormatUtil.formatBytes(sys.getUsedMemoryBytes()) + " / " + FormatUtil.formatBytes(sys.getMaxMemoryBytes()),
+        rows.add(new Row("RAM", Format.formatPercent(ramPct),
+                Format.formatBytes(sys.getUsedMemoryBytes()) + " / " + Format.formatBytes(sys.getMaxMemoryBytes()),
                 ramPct, false, true));
 
         double cpuPct = sys.getCPUPercent();
-        rows.add(new Row(
-                "CPU",
-                FormatUtil.formatPercent(cpuPct),
-                "",
-                cpuPct, false, true));
+        rows.add(new Row("CPU", Format.formatPercent(cpuPct), "", cpuPct, false, true));
 
         int online = snapshot.onlinePlayers();
-        int max    = snapshot.maxPlayers();
-        rows.add(new Row(
-                "Players",
-                online + " / " + max,
-                "",
-                (double) online / Math.max(max, 1) * 100.0, false, true));
+        int mx     = snapshot.maxPlayers();
+        rows.add(new Row("Players", online + " / " + mx, "",
+                (double) online / Math.max(mx, 1) * 100.0, false, true));
 
         return rows;
     }
@@ -223,8 +191,7 @@ public class StatusImageBuilder {
         g.drawLine(PADDING, y + ROW_H - 1, WIDTH - PADDING, y + ROW_H - 1);
     }
 
-    private void drawProgressBar(Graphics2D g, int x, int y, int w, int h,
-                                  double percent, boolean inverted) {
+    private void drawProgressBar(Graphics2D g, int x, int y, int w, int h, double percent, boolean inverted) {
         percent = Math.max(0, Math.min(100, percent));
         int filled = (int) (percent / 100.0 * w);
 

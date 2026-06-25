@@ -1,6 +1,6 @@
 package org.worldstatus.lang;
 
-import org.worldstatus.WorldStatusPlugin;
+import org.worldstatus.WorldStatus;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -13,12 +13,12 @@ import java.nio.file.Files;
 import java.util.Map;
 import java.util.logging.Level;
 
-public class LangManager {
+public class Lang {
 
-    private final WorldStatusPlugin plugin;
+    private final WorldStatus plugin;
     private FileConfiguration lang;
 
-    public LangManager(WorldStatusPlugin plugin) {
+    public Lang(WorldStatus plugin) {
         this.plugin = plugin;
         loadLang();
     }
@@ -37,9 +37,6 @@ public class LangManager {
         String locale = plugin.getConfigManager().getLanguage();
         File target   = new File(langDir, locale + ".yml");
 
-        // If the requested locale file doesn't exist, fall back to en.yml on disk.
-        // Note: only reassign target when the locale is NOT already "en" — otherwise
-        // we'd be setting target to the same path we just checked, which is always missing.
         if (!target.exists()) {
             if (!locale.equalsIgnoreCase("en")) {
                 plugin.getLogger().warning("[WorldStatus] lang/" + locale + ".yml not found, falling back to en.yml.");
@@ -52,8 +49,6 @@ public class LangManager {
         if (target.exists()) {
             lang = YamlConfiguration.loadConfiguration(target);
         } else {
-            // File still doesn't exist (extraction failed or jar resource missing).
-            // Load en.yml directly from the bundled jar resource as a last resort.
             lang = loadFromJar("lang/en.yml");
             if (lang == null) {
                 plugin.getLogger().severe("[WorldStatus] lang/en.yml not found in jar — all messages will show raw keys!");
@@ -61,7 +56,6 @@ public class LangManager {
             }
         }
 
-        // Overlay en.yml as defaults for non-English locales so missing keys degrade gracefully.
         if (!target.getName().equals("en.yml")) {
             File enFile = new File(langDir, "en.yml");
             YamlConfiguration enDefaults = enFile.exists()
@@ -73,10 +67,6 @@ public class LangManager {
         }
     }
 
-    /**
-     * Load a YamlConfiguration directly from a jar resource stream.
-     * Returns null if the resource does not exist in the jar.
-     */
     private YamlConfiguration loadFromJar(String resourcePath) {
         try (InputStream in = plugin.getResource(resourcePath)) {
             if (in == null) return null;
@@ -103,7 +93,7 @@ public class LangManager {
 
     public String get(String key) {
         if (lang == null) return key;
-        return lang.getString(key, key).replace("&", "\u00a7");
+        return lang.getString(key, key).replace("&", "§");
     }
 
     public String get(String key, Map<String, String> placeholders) {

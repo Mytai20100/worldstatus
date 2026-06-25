@@ -1,7 +1,7 @@
 package org.worldstatus.discord;
 
-import org.worldstatus.WorldStatusPlugin;
-import org.worldstatus.discord.listeners.DiscordCommandListener;
+import org.worldstatus.WorldStatus;
+import org.worldstatus.discord.listeners.Discord;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -9,24 +9,23 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.List;
 
-public class DiscordBot {
+public class Bot {
 
-    private final WorldStatusPlugin plugin;
+    private final WorldStatus plugin;
     private final String token;
     private volatile JDA jda;
-    private DiscordCommandListener commandListener;
+    private Discord commandListener;
 
-    public DiscordBot(WorldStatusPlugin plugin, String token) {
+    public Bot(WorldStatus plugin, String token) {
         this.plugin = plugin;
         this.token  = token;
     }
 
     public void start() {
         plugin.getLogger().info("[WorldStatus] Starting Discord bot...");
-        // Run on a separate thread — awaitReady() blocks, must NOT run on the server main thread
         Thread botThread = new Thread(() -> {
             try {
-                commandListener = new DiscordCommandListener(plugin);
+                commandListener = new Discord(plugin);
 
                 jda = JDABuilder.createLight(token)
                         .addEventListeners(commandListener)
@@ -76,7 +75,6 @@ public class DiscordBot {
             plugin.getLogger().warning("[WorldStatus] Guild ID '" + guildId + "' not found, falling back to global.");
         }
 
-        // upsertCommand adds/updates without touching other existing commands (e.g. Entry Points)
         commands.forEach(cmd -> jda.upsertCommand(cmd).queue(
                 ok  -> {},
                 err -> plugin.getLogger().warning("[WorldStatus] Command upsert failed: " + err.getMessage())
@@ -84,6 +82,6 @@ public class DiscordBot {
         plugin.getLogger().info("[WorldStatus] Global slash commands registered (up to 1h propagation).");
     }
 
-    public JDA  getJDA()      { return jda; }
-    public boolean isRunning() { return jda != null; }
+    public JDA     getJDA()      { return jda; }
+    public boolean isRunning()   { return jda != null; }
 }
